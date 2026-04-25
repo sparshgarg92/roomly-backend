@@ -177,6 +177,37 @@ router.post('/similar-products', express.json(), async (req, res) => {
       })
     );
 
+    router.post('/fetch-product-image', express.json(), async (req, res) => {
+  try {
+    const { url } = req.body;
+    if (!url) return res.status(400).json({ error: 'URL required' });
+
+    const response = await fetch(url, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Accept-Language': 'en-US,en;q=0.9',
+      },
+    });
+    const html = await response.text();
+
+    const ogImage = html.match(/<meta[^>]+property="og:image"[^>]+content="([^"]+)"/i)?.[1]
+      || html.match(/<meta[^>]+content="([^"]+)"[^>]+property="og:image"/i)?.[1]
+      || html.match(/"large":"(https:\/\/m\.media-amazon\.com\/images\/[^"]+)"/)?.[1]
+      || '';
+
+    const ogTitle = html.match(/<span[^>]+id="productTitle"[^>]*>\s*([^<]+)\s*<\/span>/)?.[1]?.trim()
+      || html.match(/<meta[^>]+property="og:title"[^>]+content="([^"]+)"/i)?.[1]
+      || '';
+
+    const price = html.match(/<span[^>]+class="[^"]*a-offscreen[^"]*"[^>]*>\s*(\$[^<]+)\s*<\/span>/)?.[1]?.trim() || '';
+
+    res.json({ image: ogImage, title: ogTitle, price });
+  } catch (err) {
+    console.error('fetch-product-image:', err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
     res.json({ searches });
   } catch (err) {
     console.error('similar-products:', err.message);
