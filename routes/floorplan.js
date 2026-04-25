@@ -183,6 +183,34 @@ router.post('/similar-products', express.json(), async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+router.post('/fetch-product-image', express.json(), async (req, res) => {
+  try {
+    const { url } = req.body;
+    const response = await fetch(url, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Accept-Language': 'en-US,en;q=0.9',
+      }
+    });
+    const html = await response.text();
+    
+    // Try og:image first (works on Amazon, Airbnb, most sites)
+    const ogMatch = html.match(/<meta[^>]+property="og:image"[^>]+content="([^"]+)"/i)
+      || html.match(/<meta[^>]+content="([^"]+)"[^>]+property="og:image"/i);
+    const titleMatch = html.match(/<meta[^>]+property="og:title"[^>]+content="([^"]+)"/i)
+      || html.match(/<meta[^>]+content="([^"]+)"[^>]+property="og:title"/i);
+    
+    // Amazon-specific image fallback
+    const amazonImgMatch = html.match(/\"large\":\"(https:\/\/m\.media-amazon\.com\/images\/[^"]+)\"/);
+    
+    const image = ogMatch?.[1] || amazonImgMatch?.[1] || '';
+    const title = titleMatch?.[1] || '';
+    
+    res.json({ image, title });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 
 function buildSearchQuery(itemName, prompt, roomType) {
   const styleWords = prompt.toLowerCase().match(/[a-z][a-z-]+/g)?.slice(0, 4).join(' ') || '';
