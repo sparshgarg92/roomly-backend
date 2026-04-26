@@ -10,3 +10,5 @@ Material & Color Editor — swap wall colors, floor textures, and materials in r
 Amazon Furniture Placement — paste any Amazon product link and place it in your room to scale, with automatic white-background removal
 AI Spatial Analysis — powered by K2V2, get per-room scoring on thermal comfort, WiFi signal strength, and acoustic performance
 Live Overlays — AI analysis renders directly onto your 3D model as color-coded visual overlays, not text reports
+
+- Sparsh Garg, Saksham Raheja
